@@ -2093,24 +2093,13 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
         }
 
         /**
-         * Determine whether the supplied child view has another specific sibling view as a
-         * layout dependency.
-         *
-         * <p>This method will be called at least once in response to a layout request. If it
-         * returns true for a given child and dependency view pair, the parent CoordinatorLayout
-         * will:</p>
-         * <ol>
-         *     <li>Always lay out this child after the dependent child is laid out, regardless
-         *     of child order.</li>
-         *     <li>Call {@link #onDependentViewChanged} when the dependency view's layout or
-         *     position changes.</li>
-         * </ol>
-         *
+         *表示是否给应用了Behavior 的View 指定一个依赖的布局，通常，当依赖的View 布局发生变化时
+         * 不管被被依赖View 的顺序怎样，被依赖的View也会重新布局
          * @param parent the parent view of the given child
-         * @param child the child view to test
-         * @param dependency the proposed dependency of child
-         * @return true if child's layout depends on the proposed dependency's layout,
-         *         false otherwise
+         * @param child 绑定behavior 的View
+         * @param dependency 依赖的view
+         * @return 如果child 是依赖的指定的View 返回true,否则返回false
+         * 
          *
          * @see #onDependentViewChanged(CoordinatorLayout, android.view.View, android.view.View)
          */
@@ -2120,23 +2109,7 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
 
         /**
          * Respond to a change in a child's dependent view
-         *
-         * <p>This method is called whenever a dependent view changes in size or position outside
-         * of the standard layout flow. A Behavior may use this method to appropriately update
-         * the child view in response.</p>
-         *
-         * <p>A view's dependency is determined by
-         * {@link #layoutDependsOn(CoordinatorLayout, android.view.View, android.view.View)} or
-         * if {@code child} has set another view as it's anchor.</p>
-         *
-         * <p>Note that if a Behavior changes the layout of a child via this method, it should
-         * also be able to reconstruct the correct position in
-         * {@link #onLayoutChild(CoordinatorLayout, android.view.View, int) onLayoutChild}.
-         * <code>onDependentViewChanged</code> will not be called during normal layout since
-         * the layout of each child view will always happen in dependency order.</p>
-         *
-         * <p>If the Behavior changes the child view's size or position, it should return true.
-         * The default implementation returns false.</p>
+         *当被依赖的View 状态（如：位置、大小）发生变化时，这个方法被调用
          *
          * @param parent the parent view of the given child
          * @param child the child view to manipulate
@@ -2201,25 +2174,7 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
 
         /**
          * Called when the parent CoordinatorLayout is about the lay out the given child view.
-         *
-         * <p>This method can be used to perform custom or modified layout of a child view
-         * in place of the default child layout behavior. The Behavior's implementation can
-         * delegate to the standard CoordinatorLayout measurement behavior by calling
-         * {@link CoordinatorLayout#onLayoutChild(android.view.View, int)
-         * parent.onLayoutChild}.</p>
-         *
-         * <p>If a Behavior implements
-         * {@link #onDependentViewChanged(CoordinatorLayout, android.view.View, android.view.View)}
-         * to change the position of a view in response to a dependent view changing, it
-         * should also implement <code>onLayoutChild</code> in such a way that respects those
-         * dependent views. <code>onLayoutChild</code> will always be called for a dependent view
-         * <em>after</em> its dependency has been laid out.</p>
-         *
-         * @param parent the parent CoordinatorLayout
-         * @param child child view to lay out
-         * @param layoutDirection the resolved layout direction for the CoordinatorLayout, such as
-         *                        {@link ViewCompat#LAYOUT_DIRECTION_LTR} or
-         *                        {@link ViewCompat#LAYOUT_DIRECTION_RTL}.
+         *可以重写这个方法对子View 进行重新布局
          * @return true if the Behavior performed layout of the child view, false to request
          *         default layout behavior
          */
@@ -2256,18 +2211,16 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
 
         /**
          * Called when a descendant of the CoordinatorLayout attempts to initiate a nested scroll.
-         *
-         * <p>Any Behavior associated with any direct child of the CoordinatorLayout may respond
-         * to this event and return true to indicate that the CoordinatorLayout should act as
-         * a nested scrolling parent for this scroll. Only Behaviors that return true from
-         * this method will receive subsequent nested scroll events.</p>
-         *
-         * @param coordinatorLayout the CoordinatorLayout parent of the view this Behavior is
-         *                          associated with
-         * @param child the child view of the CoordinatorLayout this Behavior is associated with
-         * @param directTargetChild the child view of the CoordinatorLayout that either is or
-         *                          contains the target of the nested scroll operation
-         * @param target the descendant view of the CoordinatorLayout initiating the nested scroll
+         * 当coordinatorLayout 的子View试图开始嵌套滑动的时候被调用。当返回值为true的时候表明
+         * coordinatorLayout 充当nested scroll parent 处理这次滑动，需要注意的是只有当返回值为true
+         * 的时候，Behavior 才能收到后面的一些nested scroll 事件回调（如：onNestedPreScroll、onNestedScroll等）
+         * 这个方法有个重要的参数nestedScrollAxes，表明处理的滑动的方向。
+         * @param coordinatorLayout 
+         *                           
+         * @param child 
+         * @param directTargetChild 
+         *                          
+         * @param target 
          * @param nestedScrollAxes the axes that this nested scroll applies to. See
          *                         {@link ViewCompat#SCROLL_AXIS_HORIZONTAL},
          *                         {@link ViewCompat#SCROLL_AXIS_VERTICAL}
@@ -2282,22 +2235,7 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
 
         /**
          * Called when a nested scroll has been accepted by the CoordinatorLayout.
-         *
-         * <p>Any Behavior associated with any direct child of the CoordinatorLayout may elect
-         * to accept the nested scroll as part of {@link #onStartNestedScroll}. Each Behavior
-         * that returned true will receive subsequent nested scroll events for that nested scroll.
-         * </p>
-         *
-         * @param coordinatorLayout the CoordinatorLayout parent of the view this Behavior is
-         *                          associated with
-         * @param child the child view of the CoordinatorLayout this Behavior is associated with
-         * @param directTargetChild the child view of the CoordinatorLayout that either is or
-         *                          contains the target of the nested scroll operation
-         * @param target the descendant view of the CoordinatorLayout initiating the nested scroll
-         * @param nestedScrollAxes the axes that this nested scroll applies to. See
-         *                         {@link ViewCompat#SCROLL_AXIS_HORIZONTAL},
-         *                         {@link ViewCompat#SCROLL_AXIS_VERTICAL}
-         *
+         * onStartNestedScroll返回true才会触发这个方法，接受滚动处理后回调，可以在这个方法里做一些准备工作，如一些状态的重置等。
          * @see NestedScrollingParent#onNestedScrollAccepted(View, View, int)
          */
         public void onNestedScrollAccepted(CoordinatorLayout coordinatorLayout, V child,
@@ -2307,22 +2245,7 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
 
         /**
          * Called when a nested scroll has ended.
-         *
-         * <p>Any Behavior associated with any direct child of the CoordinatorLayout may elect
-         * to accept the nested scroll as part of {@link #onStartNestedScroll}. Each Behavior
-         * that returned true will receive subsequent nested scroll events for that nested scroll.
-         * </p>
-         *
-         * <p><code>onStopNestedScroll</code> marks the end of a single nested scroll event
-         * sequence. This is a good place to clean up any state related to the nested scroll.
-         * </p>
-         *
-         * @param coordinatorLayout the CoordinatorLayout parent of the view this Behavior is
-         *                          associated with
-         * @param child the child view of the CoordinatorLayout this Behavior is associated with
-         * @param target the descendant view of the CoordinatorLayout that initiated
-         *               the nested scroll
-         *
+         *嵌套滚动结束时被调用，这是一个清除滚动状态等的好时机。
          * @see NestedScrollingParent#onStopNestedScroll(View)
          */
         public void onStopNestedScroll(CoordinatorLayout coordinatorLayout, V child, View target) {
@@ -2332,28 +2255,17 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
         /**
          * Called when a nested scroll in progress has updated and the target has scrolled or
          * attempted to scroll.
-         *
-         * <p>Any Behavior associated with the direct child of the CoordinatorLayout may elect
-         * to accept the nested scroll as part of {@link #onStartNestedScroll}. Each Behavior
-         * that returned true will receive subsequent nested scroll events for that nested scroll.
-         * </p>
-         *
-         * <p><code>onNestedScroll</code> is called each time the nested scroll is updated by the
-         * nested scrolling child, with both consumed and unconsumed components of the scroll
-         * supplied in pixels. <em>Each Behavior responding to the nested scroll will receive the
-         * same values.</em>
-         * </p>
-         *
-         * @param coordinatorLayout the CoordinatorLayout parent of the view this Behavior is
-         *                          associated with
-         * @param child the child view of the CoordinatorLayout this Behavior is associated with
-         * @param target the descendant view of the CoordinatorLayout performing the nested scroll
-         * @param dxConsumed horizontal pixels consumed by the target's own scrolling operation
-         * @param dyConsumed vertical pixels consumed by the target's own scrolling operation
-         * @param dxUnconsumed horizontal pixels not consumed by the target's own scrolling
-         *                     operation, but requested by the user
-         * @param dyUnconsumed vertical pixels not consumed by the target's own scrolling operation,
-         *                     but requested by the user
+         * 进行嵌套滚动时被调用
+         * @param coordinatorLayout 
+         *                         
+         * @param child 
+         * @param target 
+         * @param dxConsumed 已经消费的x方向的距离
+         * @param dyConsumed 已经消费的y方向的距离
+         * @param dxUnconsumed x 方向剩下的滚动距离
+         *                     
+         * @param dyUnconsumed y 方向剩下的滚动距离
+         *                     
          *
          * @see NestedScrollingParent#onNestedScroll(View, int, int, int, int)
          */
@@ -2365,29 +2277,12 @@ public class CoordinatorLayout extends ViewGroup implements NestedScrollingParen
         /**
          * Called when a nested scroll in progress is about to update, before the target has
          * consumed any of the scrolled distance.
+         * 嵌套滚动发生之前被调用
          *
-         * <p>Any Behavior associated with the direct child of the CoordinatorLayout may elect
-         * to accept the nested scroll as part of {@link #onStartNestedScroll}. Each Behavior
-         * that returned true will receive subsequent nested scroll events for that nested scroll.
-         * </p>
-         *
-         * <p><code>onNestedPreScroll</code> is called each time the nested scroll is updated
-         * by the nested scrolling child, before the nested scrolling child has consumed the scroll
-         * distance itself. <em>Each Behavior responding to the nested scroll will receive the
-         * same values.</em> The CoordinatorLayout will report as consumed the maximum number
-         * of pixels in either direction that any Behavior responding to the nested scroll reported
-         * as consumed.</p>
-         *
-         * @param coordinatorLayout the CoordinatorLayout parent of the view this Behavior is
-         *                          associated with
-         * @param child the child view of the CoordinatorLayout this Behavior is associated with
-         * @param target the descendant view of the CoordinatorLayout performing the nested scroll
-         * @param dx the raw horizontal number of pixels that the user attempted to scroll
-         * @param dy the raw vertical number of pixels that the user attempted to scroll
-         * @param consumed out parameter. consumed[0] should be set to the distance of dx that
-         *                 was consumed, consumed[1] should be set to the distance of dy that
-         *                 was consumed
-         *
+         * 在nested scroll child 消费掉自己的滚动距离之前，嵌套滚动每次被nested scroll child
+         * 更新都会调用onNestedPreScroll。注意有个重要的参数consumed，可以修改这个数组表示你消费
+         * 了多少距离。假设用户滑动了100px,child 做了90px 的位移，你需要把 consumed［1］的值改成90，
+         * 这样coordinatorLayout就能知道只处理剩下的10px的滚动。
          * @see NestedScrollingParent#onNestedPreScroll(View, int, int, int[])
          */
         public void onNestedPreScroll(CoordinatorLayout coordinatorLayout, V child, View target,
